@@ -1,0 +1,54 @@
+/**
+ * Property Listings Admin Styles
+ */
+
+/* Meta Box Styling */
+.property-images-meta {
+    padding: 10px 0;
+}
+
+.property-images-meta p {
+    margin: 10px 0;
+}
+
+.property-images-meta .description {
+    font-style: italic;
+    color: #666;
+}
+
+#property-images-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-left: 4px solid #0073aa;
+    background: #f0f0f1;
+    display: none;
+}
+
+#property-images-status.success {
+    border-left-color: #46b450;
+}
+
+#property-images-status.error {
+    border-left-color: #dc3232;
+}
+
+/* Settings Page Styling */
+.property-listings-settings h2 {
+    margin-top: 30px;
+}
+
+.property-listings-settings .card {
+    max-width: 800px;
+    margin-top: 20px;
+}
+
+/* Property Columns in Admin List */
+.column-property_price,
+.column-property_bedrooms,
+.column-property_bathrooms {
+    width: 100px;
+}
+
+.column-property_status {
+    width: 120px;
+}
