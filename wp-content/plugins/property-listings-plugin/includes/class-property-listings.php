@@ -66,6 +66,9 @@ class Property_Listings {
         // AJAX Handler
         require_once PROPERTY_LISTINGS_PLUGIN_DIR . 'includes/class-property-ajax-handler.php';
 
+        // Submission Form
+        require_once PROPERTY_LISTINGS_PLUGIN_DIR . 'includes/class-property-submission-form.php';
+
         // Admin specific
         require_once PROPERTY_LISTINGS_PLUGIN_DIR . 'admin/class-property-listings-admin.php';
 
@@ -111,6 +114,9 @@ class Property_Listings {
         // Enqueue public styles and scripts
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
+
+        // Initialize submission form
+        new Property_Submission_Form();
     }
 
     /**

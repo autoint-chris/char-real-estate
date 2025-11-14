@@ -184,12 +184,72 @@ class Property_Listings_Admin {
                     </tr>
                 </table>
 
+                <h2><?php _e('Submission Form Settings', 'property-listings'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="require_login_to_submit">
+                                <?php _e('Require Login', 'property-listings'); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="require_login_to_submit" name="require_login_to_submit"
+                                   value="1" <?php checked(isset($settings['require_login_to_submit']) ? $settings['require_login_to_submit'] : true, true); ?> />
+                            <p class="description">
+                                <?php _e('Require users to be logged in to submit properties', 'property-listings'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="auto_publish_submissions">
+                                <?php _e('Auto-Publish Submissions', 'property-listings'); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="auto_publish_submissions" name="auto_publish_submissions"
+                                   value="1" <?php checked(isset($settings['auto_publish_submissions']) && $settings['auto_publish_submissions']); ?> />
+                            <p class="description">
+                                <?php _e('Automatically publish submitted properties (if disabled, submissions will be set to "Pending Review")', 'property-listings'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="send_admin_notifications">
+                                <?php _e('Email Notifications', 'property-listings'); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="send_admin_notifications" name="send_admin_notifications"
+                                   value="1" <?php checked(isset($settings['send_admin_notifications']) ? $settings['send_admin_notifications'] : true, true); ?> />
+                            <p class="description">
+                                <?php _e('Send email notification to site admin when a property is submitted', 'property-listings'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
                 <?php submit_button(__('Save Settings', 'property-listings')); ?>
             </form>
 
             <hr />
 
             <h2><?php _e('Getting Started', 'property-listings'); ?></h2>
+
+            <div class="card">
+                <h3><?php _e('Property Submission Form', 'property-listings'); ?></h3>
+                <p>
+                    <?php _e('To display the property submission form on any page or post, use the following shortcode:', 'property-listings'); ?>
+                </p>
+                <p>
+                    <code>[property_submission_form]</code>
+                </p>
+                <p>
+                    <?php _e('Users can submit properties through this form. You can control whether submissions require login and whether they are automatically published or require review.', 'property-listings'); ?>
+                </p>
+            </div>
+
             <div class="card">
                 <h3><?php _e('Image Service Configuration', 'property-listings'); ?></h3>
                 <p>
@@ -218,6 +278,9 @@ class Property_Listings_Admin {
             'image_service_type' => sanitize_text_field($_POST['image_service_type']),
             'image_service_url' => esc_url_raw($_POST['image_service_url']),
             'image_service_api_key' => sanitize_text_field($_POST['image_service_api_key']),
+            'require_login_to_submit' => isset($_POST['require_login_to_submit']) ? true : false,
+            'auto_publish_submissions' => isset($_POST['auto_publish_submissions']) ? true : false,
+            'send_admin_notifications' => isset($_POST['send_admin_notifications']) ? true : false,
         );
 
         update_option('property_listings_settings', $settings);
