@@ -23,9 +23,9 @@ class Property_Meta_Boxes {
         );
 
         add_meta_box(
-            'property_location',
-            __('Property Location', 'property-listings'),
-            array($this, 'render_property_location'),
+            'property_features',
+            __('Property Features', 'property-listings'),
+            array($this, 'render_property_features'),
             'property',
             'normal',
             'high'
@@ -52,27 +52,34 @@ class Property_Meta_Boxes {
         wp_nonce_field('property_details_nonce', 'property_details_nonce_field');
 
         // Get current values
+        $address = get_post_meta($post->ID, '_property_address', true);
         $price = get_post_meta($post->ID, '_property_price', true);
-        $bedrooms = get_post_meta($post->ID, '_property_bedrooms', true);
+        $rooms = get_post_meta($post->ID, '_property_rooms', true);
         $bathrooms = get_post_meta($post->ID, '_property_bathrooms', true);
-        $sqft = get_post_meta($post->ID, '_property_sqft', true);
-        $year_built = get_post_meta($post->ID, '_property_year_built', true);
-        $lot_size = get_post_meta($post->ID, '_property_lot_size', true);
         ?>
         <table class="form-table">
+            <tr>
+                <th><label for="property_address"><?php _e('Address', 'property-listings'); ?></label></th>
+                <td>
+                    <input type="text" id="property_address" name="property_address"
+                           value="<?php echo esc_attr($address); ?>" class="large-text" />
+                    <p class="description"><?php _e('Full property address', 'property-listings'); ?></p>
+                </td>
+            </tr>
             <tr>
                 <th><label for="property_price"><?php _e('Price', 'property-listings'); ?></label></th>
                 <td>
                     <input type="number" id="property_price" name="property_price"
-                           value="<?php echo esc_attr($price); ?>" class="regular-text" step="0.01" />
+                           value="<?php echo esc_attr($price); ?>" class="regular-text" step="0.01" min="0" />
                     <p class="description"><?php _e('Enter the property price (without currency symbol)', 'property-listings'); ?></p>
                 </td>
             </tr>
             <tr>
-                <th><label for="property_bedrooms"><?php _e('Bedrooms', 'property-listings'); ?></label></th>
+                <th><label for="property_rooms"><?php _e('Rooms', 'property-listings'); ?></label></th>
                 <td>
-                    <input type="number" id="property_bedrooms" name="property_bedrooms"
-                           value="<?php echo esc_attr($bedrooms); ?>" class="small-text" min="0" />
+                    <input type="number" id="property_rooms" name="property_rooms"
+                           value="<?php echo esc_attr($rooms); ?>" class="small-text" min="0" />
+                    <p class="description"><?php _e('Number of rooms', 'property-listings'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -80,28 +87,7 @@ class Property_Meta_Boxes {
                 <td>
                     <input type="number" id="property_bathrooms" name="property_bathrooms"
                            value="<?php echo esc_attr($bathrooms); ?>" class="small-text" step="0.5" min="0" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_sqft"><?php _e('Square Feet', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="number" id="property_sqft" name="property_sqft"
-                           value="<?php echo esc_attr($sqft); ?>" class="regular-text" min="0" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_year_built"><?php _e('Year Built', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="number" id="property_year_built" name="property_year_built"
-                           value="<?php echo esc_attr($year_built); ?>" class="small-text"
-                           min="1800" max="<?php echo date('Y'); ?>" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_lot_size"><?php _e('Lot Size (acres)', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="number" id="property_lot_size" name="property_lot_size"
-                           value="<?php echo esc_attr($lot_size); ?>" class="regular-text" step="0.01" min="0" />
+                    <p class="description"><?php _e('Number of bathrooms', 'property-listings'); ?></p>
                 </td>
             </tr>
         </table>
@@ -109,59 +95,52 @@ class Property_Meta_Boxes {
     }
 
     /**
-     * Render property location meta box.
+     * Render property features meta box.
      *
      * @since 1.0.0
      * @param WP_Post $post The post object.
      */
-    public function render_property_location($post) {
+    public function render_property_features($post) {
         // Add nonce for security
-        wp_nonce_field('property_location_nonce', 'property_location_nonce_field');
+        wp_nonce_field('property_features_nonce', 'property_features_nonce_field');
 
         // Get current values
-        $address = get_post_meta($post->ID, '_property_address', true);
-        $city = get_post_meta($post->ID, '_property_city', true);
-        $state = get_post_meta($post->ID, '_property_state', true);
-        $zip = get_post_meta($post->ID, '_property_zip', true);
-        $country = get_post_meta($post->ID, '_property_country', true);
+        $features = get_post_meta($post->ID, '_property_features', true);
+        if (!is_array($features)) {
+            $features = array();
+        }
+
+        // Define available features
+        $available_features = array(
+            'parking' => __('Parking', 'property-listings'),
+            'garage' => __('Garage', 'property-listings'),
+            'garden' => __('Garden', 'property-listings'),
+            'pool' => __('Swimming Pool', 'property-listings'),
+            'balcony' => __('Balcony', 'property-listings'),
+            'terrace' => __('Terrace', 'property-listings'),
+            'elevator' => __('Elevator', 'property-listings'),
+            'air_conditioning' => __('Air Conditioning', 'property-listings'),
+            'heating' => __('Central Heating', 'property-listings'),
+            'fireplace' => __('Fireplace', 'property-listings'),
+            'security' => __('Security System', 'property-listings'),
+            'furnished' => __('Furnished', 'property-listings'),
+            'pet_friendly' => __('Pet Friendly', 'property-listings'),
+            'laundry' => __('Laundry Room', 'property-listings'),
+            'storage' => __('Storage Space', 'property-listings'),
+        );
         ?>
-        <table class="form-table">
-            <tr>
-                <th><label for="property_address"><?php _e('Street Address', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="text" id="property_address" name="property_address"
-                           value="<?php echo esc_attr($address); ?>" class="large-text" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_city"><?php _e('City', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="text" id="property_city" name="property_city"
-                           value="<?php echo esc_attr($city); ?>" class="regular-text" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_state"><?php _e('State/Province', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="text" id="property_state" name="property_state"
-                           value="<?php echo esc_attr($state); ?>" class="regular-text" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_zip"><?php _e('ZIP/Postal Code', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="text" id="property_zip" name="property_zip"
-                           value="<?php echo esc_attr($zip); ?>" class="regular-text" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="property_country"><?php _e('Country', 'property-listings'); ?></label></th>
-                <td>
-                    <input type="text" id="property_country" name="property_country"
-                           value="<?php echo esc_attr($country); ?>" class="regular-text" />
-                </td>
-            </tr>
-        </table>
+        <div class="property-features-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px;">
+            <?php foreach ($available_features as $key => $label): ?>
+                <label style="display: flex; align-items: center; margin: 0;">
+                    <input type="checkbox"
+                           name="property_features[]"
+                           value="<?php echo esc_attr($key); ?>"
+                           <?php checked(in_array($key, $features)); ?>
+                           style="margin-right: 8px;" />
+                    <?php echo esc_html($label); ?>
+                </label>
+            <?php endforeach; ?>
+        </div>
         <?php
     }
 
@@ -247,25 +226,43 @@ class Property_Meta_Boxes {
         if (isset($_POST['property_details_nonce_field']) &&
             wp_verify_nonce($_POST['property_details_nonce_field'], 'property_details_nonce')) {
 
-            $fields = array('price', 'bedrooms', 'bathrooms', 'sqft', 'year_built', 'lot_size');
-            foreach ($fields as $field) {
-                $key = "property_{$field}";
-                if (isset($_POST[$key])) {
-                    update_post_meta($post_id, "_{$key}", sanitize_text_field($_POST[$key]));
-                }
+            // Save address
+            if (isset($_POST['property_address'])) {
+                update_post_meta($post_id, '_property_address', sanitize_text_field($_POST['property_address']));
+            }
+
+            // Save price
+            if (isset($_POST['property_price'])) {
+                update_post_meta($post_id, '_property_price', sanitize_text_field($_POST['property_price']));
+            }
+
+            // Save rooms
+            if (isset($_POST['property_rooms'])) {
+                update_post_meta($post_id, '_property_rooms', intval($_POST['property_rooms']));
+            }
+
+            // Save bathrooms
+            if (isset($_POST['property_bathrooms'])) {
+                update_post_meta($post_id, '_property_bathrooms', sanitize_text_field($_POST['property_bathrooms']));
             }
         }
 
-        // Save property location
-        if (isset($_POST['property_location_nonce_field']) &&
-            wp_verify_nonce($_POST['property_location_nonce_field'], 'property_location_nonce')) {
+        // Save property features
+        if (isset($_POST['property_features_nonce_field']) &&
+            wp_verify_nonce($_POST['property_features_nonce_field'], 'property_features_nonce')) {
 
-            $fields = array('address', 'city', 'state', 'zip', 'country');
-            foreach ($fields as $field) {
-                $key = "property_{$field}";
-                if (isset($_POST[$key])) {
-                    update_post_meta($post_id, "_{$key}", sanitize_text_field($_POST[$key]));
-                }
+            // Get selected features or empty array if none selected
+            $features = isset($_POST['property_features']) ? $_POST['property_features'] : array();
+
+            // Sanitize each feature
+            $features = array_map('sanitize_text_field', $features);
+
+            // Save as serialized array
+            update_post_meta($post_id, '_property_features', $features);
+        } else {
+            // If nonce is set but no features selected, save empty array
+            if (isset($_POST['property_features_nonce_field'])) {
+                update_post_meta($post_id, '_property_features', array());
             }
         }
 
