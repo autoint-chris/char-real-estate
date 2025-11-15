@@ -13,6 +13,13 @@ class Property_Meta_Boxes {
      * @since 1.0.0
      */
     public function add_meta_boxes() {
+        // Remove default taxonomy meta boxes
+        remove_meta_box('property_typediv', 'property', 'side');
+        remove_meta_box('property_statusdiv', 'property', 'side');
+
+        // Remove featured image meta box
+        remove_meta_box('postimagediv', 'property', 'side');
+
         add_meta_box(
             'property_details',
             __('Property Details', 'property-listings'),
@@ -29,15 +36,6 @@ class Property_Meta_Boxes {
             'property',
             'normal',
             'high'
-        );
-
-        add_meta_box(
-            'property_images',
-            __('Property Images', 'property-listings'),
-            array($this, 'render_property_images'),
-            'property',
-            'side',
-            'default'
         );
     }
 
@@ -59,6 +57,12 @@ class Property_Meta_Boxes {
         $price = get_post_meta($post->ID, '_property_price', true);
         $rooms = get_post_meta($post->ID, '_property_rooms', true);
         $bathrooms = get_post_meta($post->ID, '_property_bathrooms', true);
+
+        // Get taxonomies
+        $property_types = get_terms(array('taxonomy' => 'property_type', 'hide_empty' => false));
+        $property_statuses = get_terms(array('taxonomy' => 'property_status', 'hide_empty' => false));
+        $current_type = wp_get_object_terms($post->ID, 'property_type', array('fields' => 'ids'));
+        $current_status = wp_get_object_terms($post->ID, 'property_status', array('fields' => 'ids'));
         ?>
         <table class="form-table">
             <tr>
@@ -109,6 +113,62 @@ class Property_Meta_Boxes {
                 <td>
                     <input type="number" id="property_bathrooms" name="property_bathrooms"
                            value="<?php echo esc_attr($bathrooms); ?>" class="small-text" step="0.5" min="0" />
+                </td>
+            </tr>
+            <tr>
+                <th><label for="property_type"><?php _e('Property Type', 'property-listings'); ?></label></th>
+                <td>
+                    <select id="property_type" name="property_type" class="regular-text">
+                        <option value=""><?php _e('Select Type', 'property-listings'); ?></option>
+                        <?php if (!empty($property_types) && !is_wp_error($property_types)): ?>
+                            <?php foreach ($property_types as $type): ?>
+                                <option value="<?php echo esc_attr($type->term_id); ?>"
+                                        <?php selected(in_array($type->term_id, $current_type)); ?>>
+                                    <?php echo esc_html($type->name); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="property_status"><?php _e('Property Status', 'property-listings'); ?></label></th>
+                <td>
+                    <select id="property_status" name="property_status" class="regular-text">
+                        <option value=""><?php _e('Select Status', 'property-listings'); ?></option>
+                        <?php if (!empty($property_statuses) && !is_wp_error($property_statuses)): ?>
+                            <?php foreach ($property_statuses as $status): ?>
+                                <option value="<?php echo esc_attr($status->term_id); ?>"
+                                        <?php selected(in_array($status->term_id, $current_status)); ?>>
+                                    <?php echo esc_html($status->name); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="property_images"><?php _e('Property Images', 'property-listings'); ?></label></th>
+                <td>
+                    <input type="file" id="property_images" name="property_images[]" accept="image/*" multiple class="regular-text" />
+                    <p class="description"><?php _e('Select one or more images to upload', 'property-listings'); ?></p>
+                    <?php
+                    // Display existing images
+                    $attachments = get_attached_media('image', $post->ID);
+                    if (!empty($attachments)):
+                    ?>
+                        <div id="property-images-list" style="margin-top: 15px;">
+                            <strong><?php _e('Uploaded Images:', 'property-listings'); ?></strong>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                                <?php foreach ($attachments as $attachment): ?>
+                                    <div style="position: relative; width: 100px; height: 100px;">
+                                        <img src="<?php echo wp_get_attachment_image_url($attachment->ID, 'thumbnail'); ?>"
+                                             style="width: 100%; height: 100%; object-fit: cover; border: 1px solid #ddd;" />
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </td>
             </tr>
         </table>
@@ -162,61 +222,6 @@ class Property_Meta_Boxes {
                 </label>
             <?php endforeach; ?>
         </div>
-        <?php
-    }
-
-    /**
-     * Render property images meta box.
-     *
-     * @since 1.0.0
-     * @param WP_Post $post The post object.
-     */
-    public function render_property_images($post) {
-        // Add nonce for security
-        wp_nonce_field('property_images_nonce', 'property_images_nonce_field');
-
-        $image_service_id = get_post_meta($post->ID, '_property_image_service_id', true);
-        $last_sync = get_post_meta($post->ID, '_property_images_last_sync', true);
-        ?>
-        <div class="property-images-meta">
-            <p>
-                <label for="property_image_service_id">
-                    <?php _e('Image Service Property ID', 'property-listings'); ?>
-                </label>
-                <input type="text" id="property_image_service_id" name="property_image_service_id"
-                       value="<?php echo esc_attr($image_service_id); ?>" class="widefat" />
-                <span class="description">
-                    <?php _e('Enter the property ID from your image service to sync images.', 'property-listings'); ?>
-                </span>
-            </p>
-
-            <?php if ($last_sync): ?>
-                <p class="description">
-                    <?php
-                    printf(
-                        __('Last synced: %s', 'property-listings'),
-                        date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $last_sync)
-                    );
-                    ?>
-                </p>
-            <?php endif; ?>
-
-            <p>
-                <button type="button" class="button button-secondary" id="sync-property-images">
-                    <?php _e('Sync Images Now', 'property-listings'); ?>
-                </button>
-                <span class="spinner" style="float: none;"></span>
-            </p>
-
-            <div id="property-images-status"></div>
-        </div>
-
-        <style>
-            .property-images-meta .description {
-                display: block;
-                margin-top: 5px;
-            }
-        </style>
         <?php
     }
 
@@ -281,6 +286,49 @@ class Property_Meta_Boxes {
             if (isset($_POST['property_bathrooms'])) {
                 update_post_meta($post_id, '_property_bathrooms', sanitize_text_field($_POST['property_bathrooms']));
             }
+
+            // Save property type taxonomy
+            if (isset($_POST['property_type']) && !empty($_POST['property_type'])) {
+                wp_set_object_terms($post_id, intval($_POST['property_type']), 'property_type');
+            } else {
+                wp_set_object_terms($post_id, array(), 'property_type');
+            }
+
+            // Save property status taxonomy
+            if (isset($_POST['property_status']) && !empty($_POST['property_status'])) {
+                wp_set_object_terms($post_id, intval($_POST['property_status']), 'property_status');
+            } else {
+                wp_set_object_terms($post_id, array(), 'property_status');
+            }
+
+            // Handle image uploads
+            if (!empty($_FILES['property_images']['name'][0])) {
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+                require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+                $files = $_FILES['property_images'];
+                $uploaded_images = array();
+
+                foreach ($files['name'] as $key => $value) {
+                    if ($files['name'][$key]) {
+                        $file = array(
+                            'name'     => $files['name'][$key],
+                            'type'     => $files['type'][$key],
+                            'tmp_name' => $files['tmp_name'][$key],
+                            'error'    => $files['error'][$key],
+                            'size'     => $files['size'][$key]
+                        );
+
+                        $_FILES = array('property_image' => $file);
+                        $attachment_id = media_handle_upload('property_image', $post_id);
+
+                        if (!is_wp_error($attachment_id)) {
+                            $uploaded_images[] = $attachment_id;
+                        }
+                    }
+                }
+            }
         }
 
         // Save property features
@@ -299,15 +347,6 @@ class Property_Meta_Boxes {
             // If nonce is set but no features selected, save empty array
             if (isset($_POST['property_features_nonce_field'])) {
                 update_post_meta($post_id, '_property_features', array());
-            }
-        }
-
-        // Save property images
-        if (isset($_POST['property_images_nonce_field']) &&
-            wp_verify_nonce($_POST['property_images_nonce_field'], 'property_images_nonce')) {
-
-            if (isset($_POST['property_image_service_id'])) {
-                update_post_meta($post_id, '_property_image_service_id', sanitize_text_field($_POST['property_image_service_id']));
             }
         }
     }
