@@ -55,7 +55,7 @@ class Property_Post_Type {
             'label' => __('Property', 'property-listings'),
             'description' => __('Property listings with image integration', 'property-listings'),
             'labels' => $labels,
-            'supports' => array('thumbnail', 'revisions', 'author'),
+            'supports' => array('revisions', 'author'),
             'taxonomies' => array('property_type', 'property_status'),
             'hierarchical' => false,
             'public' => true,
