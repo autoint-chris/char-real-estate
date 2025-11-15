@@ -171,6 +171,53 @@ class Property_Meta_Boxes {
                     <?php endif; ?>
                 </td>
             </tr>
+            <?php
+            // Render custom fields
+            $settings = get_option('property_listings_settings', array());
+            $custom_fields = isset($settings['custom_fields']) ? $settings['custom_fields'] : array();
+
+            if (!empty($custom_fields)):
+                foreach ($custom_fields as $field):
+                    $field_key = '_property_custom_' . $field['key'];
+                    $field_value = get_post_meta($post->ID, $field_key, true);
+            ?>
+            <tr>
+                <th><label for="custom_<?php echo esc_attr($field['key']); ?>"><?php echo esc_html($field['label']); ?></label></th>
+                <td>
+                    <?php if ($field['type'] === 'textarea'): ?>
+                        <textarea id="custom_<?php echo esc_attr($field['key']); ?>"
+                                  name="custom_fields[<?php echo esc_attr($field['key']); ?>]"
+                                  class="large-text" rows="4"><?php echo esc_textarea($field_value); ?></textarea>
+                    <?php elseif ($field['type'] === 'select'): ?>
+                        <select id="custom_<?php echo esc_attr($field['key']); ?>"
+                                name="custom_fields[<?php echo esc_attr($field['key']); ?>]"
+                                class="regular-text">
+                            <option value="">Select...</option>
+                            <?php
+                            $options = !empty($field['options']) ? explode(',', $field['options']) : array();
+                            foreach ($options as $option):
+                                $option = trim($option);
+                            ?>
+                                <option value="<?php echo esc_attr($option); ?>"
+                                        <?php selected($field_value, $option); ?>>
+                                    <?php echo esc_html($option); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php else: ?>
+                        <input type="<?php echo esc_attr($field['type']); ?>"
+                               id="custom_<?php echo esc_attr($field['key']); ?>"
+                               name="custom_fields[<?php echo esc_attr($field['key']); ?>]"
+                               value="<?php echo esc_attr($field_value); ?>"
+                               class="regular-text"
+                               <?php if ($field['type'] === 'number'): ?>step="any"<?php endif; ?> />
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php
+                endforeach;
+            endif;
+            ?>
         </table>
         <?php
     }
@@ -191,7 +238,7 @@ class Property_Meta_Boxes {
             $features = array();
         }
 
-        // Define available features
+        // Define default features
         $available_features = array(
             'parking' => __('Parking', 'property-listings'),
             'garage' => __('Garage', 'property-listings'),
@@ -209,6 +256,16 @@ class Property_Meta_Boxes {
             'laundry' => __('Laundry Room', 'property-listings'),
             'storage' => __('Storage Space', 'property-listings'),
         );
+
+        // Add custom features from settings
+        $settings = get_option('property_listings_settings', array());
+        $custom_features = isset($settings['custom_features']) ? $settings['custom_features'] : array();
+
+        if (!empty($custom_features)) {
+            foreach ($custom_features as $custom_feature) {
+                $available_features[$custom_feature['key']] = $custom_feature['label'];
+            }
+        }
         ?>
         <div class="property-features-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px;">
             <?php foreach ($available_features as $key => $label): ?>
@@ -327,6 +384,14 @@ class Property_Meta_Boxes {
                             $uploaded_images[] = $attachment_id;
                         }
                     }
+                }
+            }
+
+            // Save custom field values
+            if (isset($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
+                foreach ($_POST['custom_fields'] as $field_key => $field_value) {
+                    $meta_key = '_property_custom_' . sanitize_key($field_key);
+                    update_post_meta($post_id, $meta_key, sanitize_text_field($field_value));
                 }
             }
         }

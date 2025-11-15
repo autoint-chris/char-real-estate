@@ -184,6 +184,100 @@ class Property_Listings_Admin {
                     </tr>
                 </table>
 
+                <h2><?php _e('Custom Fields Management', 'property-listings'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label><?php _e('Property Details Fields', 'property-listings'); ?></label>
+                        </th>
+                        <td>
+                            <div id="custom-fields-container">
+                                <?php
+                                $custom_fields = isset($settings['custom_fields']) ? $settings['custom_fields'] : array();
+                                if (!empty($custom_fields)):
+                                    foreach ($custom_fields as $index => $field):
+                                ?>
+                                    <div class="custom-field-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
+                                        <p>
+                                            <label><?php _e('Field Label:', 'property-listings'); ?></label>
+                                            <input type="text" name="custom_fields[<?php echo $index; ?>][label]"
+                                                   value="<?php echo esc_attr($field['label']); ?>" class="regular-text" />
+                                        </p>
+                                        <p>
+                                            <label><?php _e('Field Type:', 'property-listings'); ?></label>
+                                            <select name="custom_fields[<?php echo $index; ?>][type]" class="regular-text">
+                                                <option value="text" <?php selected($field['type'], 'text'); ?>><?php _e('Text', 'property-listings'); ?></option>
+                                                <option value="number" <?php selected($field['type'], 'number'); ?>><?php _e('Number', 'property-listings'); ?></option>
+                                                <option value="textarea" <?php selected($field['type'], 'textarea'); ?>><?php _e('Textarea', 'property-listings'); ?></option>
+                                                <option value="select" <?php selected($field['type'], 'select'); ?>><?php _e('Select Dropdown', 'property-listings'); ?></option>
+                                            </select>
+                                        </p>
+                                        <p>
+                                            <label><?php _e('Field Key:', 'property-listings'); ?></label>
+                                            <input type="text" name="custom_fields[<?php echo $index; ?>][key]"
+                                                   value="<?php echo esc_attr($field['key']); ?>" class="regular-text"
+                                                   placeholder="<?php _e('e.g., square_footage', 'property-listings'); ?>" />
+                                            <span class="description"><?php _e('Used to store the value (no spaces, lowercase)', 'property-listings'); ?></span>
+                                        </p>
+                                        <p>
+                                            <label><?php _e('Options (for select):', 'property-listings'); ?></label>
+                                            <input type="text" name="custom_fields[<?php echo $index; ?>][options]"
+                                                   value="<?php echo isset($field['options']) ? esc_attr($field['options']) : ''; ?>" class="regular-text"
+                                                   placeholder="<?php _e('Option 1, Option 2, Option 3', 'property-listings'); ?>" />
+                                            <span class="description"><?php _e('Comma-separated values for select dropdown', 'property-listings'); ?></span>
+                                        </p>
+                                        <p>
+                                            <button type="button" class="button remove-custom-field"><?php _e('Remove Field', 'property-listings'); ?></button>
+                                        </p>
+                                    </div>
+                                <?php
+                                    endforeach;
+                                endif;
+                                ?>
+                            </div>
+                            <p>
+                                <button type="button" id="add-custom-field" class="button"><?php _e('Add New Field', 'property-listings'); ?></button>
+                            </p>
+                            <p class="description">
+                                <?php _e('These fields will appear on all property forms', 'property-listings'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label><?php _e('Property Features', 'property-listings'); ?></label>
+                        </th>
+                        <td>
+                            <div id="custom-features-container">
+                                <?php
+                                $custom_features = isset($settings['custom_features']) ? $settings['custom_features'] : array();
+                                if (!empty($custom_features)):
+                                    foreach ($custom_features as $index => $feature):
+                                ?>
+                                    <div class="custom-feature-row" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">
+                                        <input type="text" name="custom_features[<?php echo $index; ?>][label]"
+                                               value="<?php echo esc_attr($feature['label']); ?>" class="regular-text"
+                                               placeholder="<?php _e('Feature name', 'property-listings'); ?>" />
+                                        <input type="text" name="custom_features[<?php echo $index; ?>][key]"
+                                               value="<?php echo esc_attr($feature['key']); ?>" class="regular-text"
+                                               placeholder="<?php _e('feature_key', 'property-listings'); ?>" />
+                                        <button type="button" class="button remove-custom-feature"><?php _e('Remove', 'property-listings'); ?></button>
+                                    </div>
+                                <?php
+                                    endforeach;
+                                endif;
+                                ?>
+                            </div>
+                            <p>
+                                <button type="button" id="add-custom-feature" class="button"><?php _e('Add New Feature', 'property-listings'); ?></button>
+                            </p>
+                            <p class="description">
+                                <?php _e('Add custom features/amenities that will appear as checkboxes', 'property-listings'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
                 <h2><?php _e('Submission Form Settings', 'property-listings'); ?></h2>
                 <table class="form-table">
                     <tr>
@@ -273,11 +367,41 @@ class Property_Listings_Admin {
      * @since 1.0.0
      */
     private function save_settings() {
+        // Sanitize custom fields
+        $custom_fields = array();
+        if (isset($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
+            foreach ($_POST['custom_fields'] as $field) {
+                if (!empty($field['label']) && !empty($field['key'])) {
+                    $custom_fields[] = array(
+                        'label' => sanitize_text_field($field['label']),
+                        'type' => sanitize_text_field($field['type']),
+                        'key' => sanitize_key($field['key']),
+                        'options' => isset($field['options']) ? sanitize_text_field($field['options']) : '',
+                    );
+                }
+            }
+        }
+
+        // Sanitize custom features
+        $custom_features = array();
+        if (isset($_POST['custom_features']) && is_array($_POST['custom_features'])) {
+            foreach ($_POST['custom_features'] as $feature) {
+                if (!empty($feature['label']) && !empty($feature['key'])) {
+                    $custom_features[] = array(
+                        'label' => sanitize_text_field($feature['label']),
+                        'key' => sanitize_key($feature['key']),
+                    );
+                }
+            }
+        }
+
         $settings = array(
             'image_service_enabled' => isset($_POST['image_service_enabled']) ? true : false,
             'image_service_type' => sanitize_text_field($_POST['image_service_type']),
             'image_service_url' => esc_url_raw($_POST['image_service_url']),
             'image_service_api_key' => sanitize_text_field($_POST['image_service_api_key']),
+            'custom_fields' => $custom_fields,
+            'custom_features' => $custom_features,
             'require_login_to_submit' => isset($_POST['require_login_to_submit']) ? true : false,
             'auto_publish_submissions' => isset($_POST['auto_publish_submissions']) ? true : false,
             'send_admin_notifications' => isset($_POST['send_admin_notifications']) ? true : false,

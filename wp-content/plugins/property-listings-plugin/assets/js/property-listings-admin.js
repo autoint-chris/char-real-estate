@@ -86,6 +86,77 @@
             }
         }).trigger('change');
 
+        /**
+         * Add custom field
+         */
+        var customFieldIndex = $('.custom-field-row').length;
+        $('#add-custom-field').on('click', function(e) {
+            e.preventDefault();
+            var fieldHtml = '<div class="custom-field-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">' +
+                '<p>' +
+                    '<label>Field Label:</label>' +
+                    '<input type="text" name="custom_fields[' + customFieldIndex + '][label]" value="" class="regular-text" />' +
+                '</p>' +
+                '<p>' +
+                    '<label>Field Type:</label>' +
+                    '<select name="custom_fields[' + customFieldIndex + '][type]" class="regular-text">' +
+                        '<option value="text">Text</option>' +
+                        '<option value="number">Number</option>' +
+                        '<option value="textarea">Textarea</option>' +
+                        '<option value="select">Select Dropdown</option>' +
+                    '</select>' +
+                '</p>' +
+                '<p>' +
+                    '<label>Field Key:</label>' +
+                    '<input type="text" name="custom_fields[' + customFieldIndex + '][key]" value="" class="regular-text" placeholder="e.g., square_footage" />' +
+                    '<span class="description">Used to store the value (no spaces, lowercase)</span>' +
+                '</p>' +
+                '<p>' +
+                    '<label>Options (for select):</label>' +
+                    '<input type="text" name="custom_fields[' + customFieldIndex + '][options]" value="" class="regular-text" placeholder="Option 1, Option 2, Option 3" />' +
+                    '<span class="description">Comma-separated values for select dropdown</span>' +
+                '</p>' +
+                '<p>' +
+                    '<button type="button" class="button remove-custom-field">Remove Field</button>' +
+                '</p>' +
+            '</div>';
+
+            $('#custom-fields-container').append(fieldHtml);
+            customFieldIndex++;
+        });
+
+        /**
+         * Remove custom field
+         */
+        $(document).on('click', '.remove-custom-field', function(e) {
+            e.preventDefault();
+            $(this).closest('.custom-field-row').remove();
+        });
+
+        /**
+         * Add custom feature
+         */
+        var customFeatureIndex = $('.custom-feature-row').length;
+        $('#add-custom-feature').on('click', function(e) {
+            e.preventDefault();
+            var featureHtml = '<div class="custom-feature-row" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">' +
+                '<input type="text" name="custom_features[' + customFeatureIndex + '][label]" value="" class="regular-text" placeholder="Feature name" />' +
+                '<input type="text" name="custom_features[' + customFeatureIndex + '][key]" value="" class="regular-text" placeholder="feature_key" />' +
+                '<button type="button" class="button remove-custom-feature">Remove</button>' +
+            '</div>';
+
+            $('#custom-features-container').append(featureHtml);
+            customFeatureIndex++;
+        });
+
+        /**
+         * Remove custom feature
+         */
+        $(document).on('click', '.remove-custom-feature', function(e) {
+            e.preventDefault();
+            $(this).closest('.custom-feature-row').remove();
+        });
+
     });
 
 })(jQuery);
