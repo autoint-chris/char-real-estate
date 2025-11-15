@@ -52,18 +52,41 @@ class Property_Meta_Boxes {
         wp_nonce_field('property_details_nonce', 'property_details_nonce_field');
 
         // Get current values
-        $address = get_post_meta($post->ID, '_property_address', true);
+        $street = get_post_meta($post->ID, '_property_street', true);
+        $city = get_post_meta($post->ID, '_property_city', true);
+        $state = get_post_meta($post->ID, '_property_state', true);
+        $zip = get_post_meta($post->ID, '_property_zip', true);
         $price = get_post_meta($post->ID, '_property_price', true);
         $rooms = get_post_meta($post->ID, '_property_rooms', true);
         $bathrooms = get_post_meta($post->ID, '_property_bathrooms', true);
         ?>
         <table class="form-table">
             <tr>
-                <th><label for="property_address"><?php _e('Address', 'property-listings'); ?></label></th>
+                <th><label for="property_street"><?php _e('Street', 'property-listings'); ?></label></th>
                 <td>
-                    <input type="text" id="property_address" name="property_address"
-                           value="<?php echo esc_attr($address); ?>" class="large-text" />
-                    <p class="description"><?php _e('Full property address', 'property-listings'); ?></p>
+                    <input type="text" id="property_street" name="property_street"
+                           value="<?php echo esc_attr($street); ?>" class="large-text" />
+                </td>
+            </tr>
+            <tr>
+                <th><label for="property_city"><?php _e('City', 'property-listings'); ?></label></th>
+                <td>
+                    <input type="text" id="property_city" name="property_city"
+                           value="<?php echo esc_attr($city); ?>" class="regular-text" />
+                </td>
+            </tr>
+            <tr>
+                <th><label for="property_state"><?php _e('State', 'property-listings'); ?></label></th>
+                <td>
+                    <input type="text" id="property_state" name="property_state"
+                           value="<?php echo esc_attr($state); ?>" class="regular-text" />
+                </td>
+            </tr>
+            <tr>
+                <th><label for="property_zip"><?php _e('ZIP', 'property-listings'); ?></label></th>
+                <td>
+                    <input type="text" id="property_zip" name="property_zip"
+                           value="<?php echo esc_attr($zip); ?>" class="regular-text" />
                 </td>
             </tr>
             <tr>
@@ -79,7 +102,6 @@ class Property_Meta_Boxes {
                 <td>
                     <input type="number" id="property_rooms" name="property_rooms"
                            value="<?php echo esc_attr($rooms); ?>" class="small-text" min="0" />
-                    <p class="description"><?php _e('Number of rooms', 'property-listings'); ?></p>
                 </td>
             </tr>
             <tr>
@@ -87,7 +109,6 @@ class Property_Meta_Boxes {
                 <td>
                     <input type="number" id="property_bathrooms" name="property_bathrooms"
                            value="<?php echo esc_attr($bathrooms); ?>" class="small-text" step="0.5" min="0" />
-                    <p class="description"><?php _e('Number of bathrooms', 'property-listings'); ?></p>
                 </td>
             </tr>
         </table>
@@ -226,9 +247,24 @@ class Property_Meta_Boxes {
         if (isset($_POST['property_details_nonce_field']) &&
             wp_verify_nonce($_POST['property_details_nonce_field'], 'property_details_nonce')) {
 
-            // Save address
-            if (isset($_POST['property_address'])) {
-                update_post_meta($post_id, '_property_address', sanitize_text_field($_POST['property_address']));
+            // Save street
+            if (isset($_POST['property_street'])) {
+                update_post_meta($post_id, '_property_street', sanitize_text_field($_POST['property_street']));
+            }
+
+            // Save city
+            if (isset($_POST['property_city'])) {
+                update_post_meta($post_id, '_property_city', sanitize_text_field($_POST['property_city']));
+            }
+
+            // Save state
+            if (isset($_POST['property_state'])) {
+                update_post_meta($post_id, '_property_state', sanitize_text_field($_POST['property_state']));
+            }
+
+            // Save zip
+            if (isset($_POST['property_zip'])) {
+                update_post_meta($post_id, '_property_zip', sanitize_text_field($_POST['property_zip']));
             }
 
             // Save price
