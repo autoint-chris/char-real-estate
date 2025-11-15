@@ -1,0 +1,85 @@
+# WordPress Core
+/wp-admin/
+/wp-includes/
+/wp-*.php
+/xmlrpc.php
+/readme.html
+/license.txt
+
+# WordPress Configuration
+wp-config.php
+wp-config-local.php
+.htaccess
+
+# Database
+*.sql
+*.sqlite
+wp-content/database/
+wp-content/database/.ht.sqlite
+
+# Logs
+*.log
+wp-content/debug.log
+error_log
+debug.log
+
+# Cache & Backup
+wp-content/cache/
+wp-content/backup/
+wp-content/backups/
+wp-content/backup-db/
+wp-content/upgrades/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+
+# Uploads (consider uncommenting if you don't want to track media files)
+# wp-content/uploads/
+
+# Plugins (consider tracking specific plugins you develop)
+wp-content/plugins/akismet/
+wp-content/plugins/hello.php
+
+# Themes (consider tracking specific themes you develop)
+# wp-content/themes/twenty*/
+
+# Node & Package Managers
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Composer
+/vendor/
+composer.lock
+
+# OS & Editor Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary Files
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Compressed Files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Sitemap
+sitemap.xml
+sitemap.xml.gz
