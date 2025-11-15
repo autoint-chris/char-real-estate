@@ -37,6 +37,15 @@ class Property_Meta_Boxes {
             'normal',
             'high'
         );
+
+        add_meta_box(
+            'property_custom_fields',
+            __('Additional Custom Fields', 'property-listings'),
+            array($this, 'render_custom_fields'),
+            'property',
+            'normal',
+            'default'
+        );
     }
 
     /**
@@ -283,6 +292,89 @@ class Property_Meta_Boxes {
     }
 
     /**
+     * Render custom fields meta box for property-specific fields.
+     *
+     * @since 1.0.0
+     * @param WP_Post $post The post object.
+     */
+    public function render_custom_fields($post) {
+        // Add nonce for security
+        wp_nonce_field('property_custom_fields_nonce', 'property_custom_fields_nonce_field');
+
+        // Get saved local custom fields
+        $local_fields = get_post_meta($post->ID, '_property_local_fields', true);
+        if (!is_array($local_fields)) {
+            $local_fields = array();
+        }
+        ?>
+        <p class="description" style="margin-bottom: 15px;">
+            <?php _e('Add custom fields specific to this property only. These fields will not appear on other properties.', 'property-listings'); ?>
+        </p>
+
+        <div id="local-custom-fields-container">
+            <?php if (!empty($local_fields)): ?>
+                <?php foreach ($local_fields as $index => $field): ?>
+                    <div class="local-field-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
+                        <p style="margin-bottom: 10px;">
+                            <label style="display: inline-block; width: 150px; font-weight: 600;"><?php _e('Field Label:', 'property-listings'); ?></label>
+                            <input type="text" name="local_fields[<?php echo $index; ?>][label]"
+                                   value="<?php echo esc_attr($field['label']); ?>" class="regular-text"
+                                   placeholder="<?php _e('e.g., HOA Fee', 'property-listings'); ?>" />
+                        </p>
+                        <p style="margin-bottom: 10px;">
+                            <label style="display: inline-block; width: 150px; font-weight: 600;"><?php _e('Field Value:', 'property-listings'); ?></label>
+                            <input type="text" name="local_fields[<?php echo $index; ?>][value]"
+                                   value="<?php echo esc_attr($field['value']); ?>" class="regular-text"
+                                   placeholder="<?php _e('Enter value', 'property-listings'); ?>" />
+                        </p>
+                        <p>
+                            <button type="button" class="button remove-local-field"><?php _e('Remove Field', 'property-listings'); ?></button>
+                        </p>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <p>
+            <button type="button" id="add-local-field" class="button button-secondary">
+                <?php _e('+ Add Field', 'property-listings'); ?>
+            </button>
+        </p>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            var localFieldIndex = $('.local-field-row').length;
+
+            $('#add-local-field').on('click', function(e) {
+                e.preventDefault();
+                var fieldHtml = '<div class="local-field-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">' +
+                    '<p style="margin-bottom: 10px;">' +
+                        '<label style="display: inline-block; width: 150px; font-weight: 600;">Field Label:</label>' +
+                        '<input type="text" name="local_fields[' + localFieldIndex + '][label]" value="" class="regular-text" placeholder="e.g., HOA Fee" />' +
+                    '</p>' +
+                    '<p style="margin-bottom: 10px;">' +
+                        '<label style="display: inline-block; width: 150px; font-weight: 600;">Field Value:</label>' +
+                        '<input type="text" name="local_fields[' + localFieldIndex + '][value]" value="" class="regular-text" placeholder="Enter value" />' +
+                    '</p>' +
+                    '<p>' +
+                        '<button type="button" class="button remove-local-field">Remove Field</button>' +
+                    '</p>' +
+                '</div>';
+
+                $('#local-custom-fields-container').append(fieldHtml);
+                localFieldIndex++;
+            });
+
+            $(document).on('click', '.remove-local-field', function(e) {
+                e.preventDefault();
+                $(this).closest('.local-field-row').remove();
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
      * Save meta box data.
      *
      * @since 1.0.0
@@ -413,6 +505,26 @@ class Property_Meta_Boxes {
             if (isset($_POST['property_features_nonce_field'])) {
                 update_post_meta($post_id, '_property_features', array());
             }
+        }
+
+        // Save local custom fields
+        if (isset($_POST['property_custom_fields_nonce_field']) &&
+            wp_verify_nonce($_POST['property_custom_fields_nonce_field'], 'property_custom_fields_nonce')) {
+
+            $local_fields = array();
+            if (isset($_POST['local_fields']) && is_array($_POST['local_fields'])) {
+                foreach ($_POST['local_fields'] as $field) {
+                    // Only save if both label and value are provided
+                    if (!empty($field['label']) || !empty($field['value'])) {
+                        $local_fields[] = array(
+                            'label' => sanitize_text_field($field['label']),
+                            'value' => sanitize_text_field($field['value']),
+                        );
+                    }
+                }
+            }
+
+            update_post_meta($post_id, '_property_local_fields', $local_fields);
         }
     }
 }
